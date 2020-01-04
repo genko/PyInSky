@@ -256,3 +256,7 @@ dmypy.json
 .history
 
 # End of https://www.gitignore.io/api/c++,node,python,visualstudiocode
+
+
+# repo specific settings
+builds/
