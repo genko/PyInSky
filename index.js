@@ -5,6 +5,7 @@ const mkdirp = require('mkdirp');
 const copy = require('recursive-copy');
 const express = require('express');
 const path = require('path');
+var shell = require('shelljs');
 const PORT = process.env.PORT || 5000;
 
 let nbid = 1;
@@ -46,36 +47,24 @@ $flags
 `;
 
 function sendHeaders(res) {
-
     res.writeHead(200, {
         'Content-Type': 'text/plain'
     });
-
 }
 
 function Builder(PROJ_ID) {
-
     this.id = nbid++;
-
     this.result = "";
-
     this.state = "INIT";
 
     builders[this.id] = this;
-
-    if (PROJ_ID)
-        projects[PROJ_ID] = this.id;
-
+    if (PROJ_ID) { projects[PROJ_ID] = this.id; }
     console.log("New builder: " + PROJ_ID);
-
-    ensureBuildDirectoriesExist();
+    ensureBuildDirectoriesExist(this.id);
 
     let data = '', stdout = '', files;
-
     let flags = {}, dirtyLib = true;
-
     let main = null;
-
     let retry = {};
 
     this.addFlags = obj => {
@@ -94,8 +83,7 @@ function Builder(PROJ_ID) {
 
         delete projects[PROJ_ID];
 
-        if (builders[this.id] == this)
-            delete builders[this.id];
+        if (builders[this.id] == this) { delete builders[this.id]; }
         try {
             rimraf(__dirname + '/builds/' + this.id, _ => { });
         } catch (err) {
@@ -109,8 +97,9 @@ function Builder(PROJ_ID) {
     };
 
     this.resetDestroy = _ => {
-        if (this.destroyHND)
+        if (this.destroyHND) {
             clearTimeout(this.destroyHND);
+        }
 
         this.destroyHND = setTimeout(this.destroy, 5 * 60 * 1000);
     };
@@ -128,7 +117,6 @@ function Builder(PROJ_ID) {
     };
 
     this.start = _ => {
-
         try {
             files = JSON.parse(data);
         } catch (ex) {
@@ -142,11 +130,9 @@ function Builder(PROJ_ID) {
         this.resetDestroy();
         queue.push(this);
         this.state = "QUEUED";
-
     };
 
     this.run = _ => {
-
         if (this.state != "QUEUED") return;
 
         this.resetDestroy();
@@ -167,16 +153,12 @@ function Builder(PROJ_ID) {
         }
 
         files["My_settings.h"] = settings.replace("$flags", strflags);
-
         let fileList = Object.keys(files);
-
         this.pop(fileList);
     };
 
     this.pop = fileList => {
-
-        if (!fileList.length)
-            return this.compile();
+        if (!fileList.length) { return this.compile(); }
 
         let file = fileList.shift().replace(/\\/g, '/'); // convert \ to /
         let fullPath = __dirname + '/builds/' + this.id + '/' + file.replace(/\/\.+\//g, '/'); // remove shenanigans
@@ -190,29 +172,23 @@ function Builder(PROJ_ID) {
             writeFile.call(this);
 
         function writeFile() {
-
             let str = files[file];
             let buf = Buffer.from(str, file == "My_settings.h" ? 'utf-8' : 'base64');
 
             fs.writeFile(fullPath, buf, e => {
-
                 if (e) {
                     this.state = 'DONE';
                     busy = false;
                     this.result = "ERROR: " + file + " - " + e.toString();
                     return;
                 }
-
                 this.pop(fileList);
-
             });
         }
     };
 
     this.compile = _ => {
-
         try {
-
             const child = exec(
                 [
                     __dirname + '/build.sh',
@@ -239,44 +215,30 @@ function Builder(PROJ_ID) {
                     }
 
                 });
-
         } catch (ex) {
             console.error(ex);
             this.result = "ERROR: " + ex;
             this.state = "DONE";
             busy = false;
-
         }
-
     };
 
+    function ensureBuildDirectoriesExist(id) {
+        const buildDir = __dirname + '/builds/' + id;
+        const publicDir = __dirname + '/public/builds/' + id;
 
-    function ensureBuildDirectoriesExist() {
-        let buildRoot = __dirname + '/builds/';
-        if (!fs.existsSync(buildRoot)) {
-            fs.mkdirSync(buildRoot);
-        }
-        let buildRootId = buildRoot + this.id;
-        if (!fs.existsSync(buildRootId)) {
-            fs.mkdirSync(buildRootId);
-        }
-        let publicBuildId = __dirname + '/public/builds/' + this.id;
-        if (!fs.existsSync(publicBuildId)) {
-            fs.mkdirSync(publicBuildId);
-        }
+        console.log("Create build directories if not existing:");
+        console.log("  " + buildDir);
+        console.log("  " + publicDir);
+        shell.mkdir('-p', buildDir);
+        shell.mkdir('-p', publicDir);
     }
 }
 
-
-
 setInterval(_ => {
-
-    if (!queue.length || busy)
-        return;
-
+    if (!queue.length || busy) { return; }
     let next = queue.shift();
     next.run();
-
 }, 1000);
 
 execSync("chmod +x -R " + __dirname + "/gcc-arm-none-eabi/");
@@ -298,46 +260,41 @@ express()
     .get('/blockly', (req, res) => res.render('pages/blockly'))
     .get('/emulator', (req, res) => res.render('pages/emulator'))
     .get('/poll', (req, res) => {
-
         let builder = builders[req.query.id];
 
         sendHeaders(res);
         if (builder) {
-
             if (builder.state !== "DONE") {
                 builder.resetDestroy();
                 res.end(builder.state);
-            } else
+            } else {
                 res.end(builder.result);
-
-        } else
+            }
+        } else {
             res.end("DESTROYED");
+        }
 
     })
     .post('/build', (req, res) => {
-
         let builder;
-        if (req.query.PROJ_ID && projects[req.query.PROJ_ID])
+        if (req.query.PROJ_ID && projects[req.query.PROJ_ID]) {
             builder = builders[projects[req.query.PROJ_ID]];
+        }
 
         console.log("Build request: " + req.query.PROJ_ID + ", " + projects[req.query.PROJ_ID]);
-
-        if (!builder)
+        if (!builder) {
             builder = new Builder(req.query.PROJ_ID);
-
+        }
         builder.addFlags(req.query);
 
         req.on('data', function (data) {
-            if (!builder.addData(data))
-                req.connection.destroy();
+            if (!builder.addData(data)) { req.connection.destroy(); }
         });
 
         req.on('end', function () {
-
             builder.start();
             sendHeaders(res);
             res.end(builder.id.toString());
-
         });
 
     })
