@@ -15,6 +15,7 @@ Make sure you have npm installed, apt install npm might help.
 ```sh
 $ git clone https://github.com/genko/PyInSky.git
 $ cd PyInSky
+$ install_gcc-arm-none-eabi.sh
 $ npm install
 $ npm start
 ```
