@@ -3,6 +3,11 @@
 Develop in python from your browser for Pokitto, simulate/run you python
 programs on a virtual Pokitto in your browser.
 
+## Development Environment
+
+This repository contains several symbol links.
+Due to, it is recommended to use a linux based operating system.
+
 ## Running Locally
 
 Make sure you have npm installed, apt install npm might help.
