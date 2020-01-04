@@ -5,12 +5,12 @@ STARTDIR=$PWD
 BUILDID=$1
 DIRTYLIB=$2
 
-SRCDIR=$STARTDIR/builds/$BUILDID
-OUTDIR=$STARTDIR/public/builds/$BUILDID
+SRCDIR="$STARTDIR/builds/$BUILDID"
+OUTDIR="$STARTDIR/public/builds/$BUILDID"
 
-cp template/* $SRCDIR/ -r
+cp template/* "$SRCDIR/" -r
 
-cd $SRCDIR
+cd "$SRCDIR"
 
 CMD="python3 tools/mpy-tool.py -mlongint-impl=none -f -q genhdr/qstrdefs.preprocessed.h "
 CMD=$CMD`find *.mpy`
