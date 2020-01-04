@@ -90,7 +90,6 @@ body>*, #pane>* {
 
 #headPane #compile {
     background-image: url(../Sprites/open.png);
-    background-color: rgba(150, 233, 241, 0.8);
     margin-right: 0;
 }
 

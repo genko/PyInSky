@@ -7,20 +7,20 @@ html, body {
 }
 
 .charR {
-    --head-pane-bgc: #8da2c2;
-    --button-bgc: #a5a5a5;
+    --head-pane-bgc: hsl(220, 13%, 24%);
+    --button-bgc: hsl(220, 13%, 70%);
     --text-color: #e7eae7;
 }
 
 .charG {
-    --head-pane-bgc: #41b9ac;
-    --button-bgc: #00f9b8;
+    --head-pane-bgc: hsl(220, 13%, 24%);
+    --button-bgc: hsl(220, 13%, 70%);
     --text-color: #e7eae7;
 }
 
 .charB {
-    --head-pane-bgc: #41b9ac;
-    --button-bgc: #00f9b8;
+    --head-pane-bgc: hsl(220, 13%, 24%);
+    --button-bgc: hsl(220, 13%, 70%);
     --text-color: #e7eae7;
 }
 
@@ -50,7 +50,7 @@ html, body {
 
 #headPane {
     display: flex;
-    padding: 18px 5px 18px 5px;
+    padding: 0.5em;
     flex-grow: 0;
     height: 128px;
     color: var(--text-color);
@@ -81,15 +81,6 @@ html, body {
     display: initial;
 }
 
-#tabContainer[mode=output] #outputTab,
-#tabContainer[mode=project] #projectTab,
-#tabContainer[mode=image] #imageTab,
-#tabContainer[mode=help] #helpTab,
-#tabContainer[mode=flags] #flagsTab
-{
-    background-color: var(--head-pane-bgc);
-}
-
 #tabContainer>div {
     display: none;
     position: relative;
@@ -112,11 +103,9 @@ html, body {
 #tabsHeader button {
     padding-right: 10px;
     margin: 2px 5px 0 5px;
-    border-color: rgba(0,0,0,0.5);
     border-style: none;
     border-width: 1px 1px 0px 1px;
     border-radius: 10px 20px 0 0;
-    background: rgba(0,0,0,0.3);
     font-family: 'VT323';
     font-size: 1.2em;
 }
@@ -146,7 +135,6 @@ html, body {
 
 #projectContainer #deleteProject {
     margin-left: 30px;
-    background-color: rgba(0,0,0,0.3);
     border: none;
     border-radius: 10px;
 }
@@ -177,12 +165,16 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: #c4c4c4;
     font-family: monospace;
     font-size: 1.5em;
-    color: #222;
     padding: 10px;
     box-sizing: border-box;
+    background-color: var(--head-pane-bgc);
+    color: var(--text-color)
+}
+
+#output a:link, #output a:visited, #output a:hover, #output a:active {
+    color: var(--text-color)
 }
 
 .source-ref {
@@ -314,16 +306,15 @@ html, body {
 #fileList {
     background-color: var(--text-color);
     height: 64px;
-    width: calc(100% - 64px);
+    width: calc(100%);
     border: 0 none;
     vertical-align: top;
     font: inherit;
     padding-right: 10px;
     position: absolute;
     top: 0;
-    margin-left: 64px;
     left: 0;
-    border-radius: 0 10px 10px 0;
+    border-radius: 10px;
 }
 #fileList:active, #fileList:focus {
     outline: 0 none;
@@ -340,14 +331,13 @@ html, body {
 }
 
 #headPane #btnSprites::after {
-    background-image: url(../Sprites/star.png);    
+    background-image: url(../Sprites/star.png);
 }
 .pixelEditor #btnSprites {
     display: none;
 }
 
 #headPane #btnExamples::after {
-    background-color: #f6ffa6;
     background-image: url(../Sprites/examples.png);
 }
 .pixelEditor #btnExamples {
@@ -361,7 +351,7 @@ html, body {
     flex-grow: 0;
     width: 200px;
     background-position: center bottom;
-    background-repeat: no-repeat;    
+    background-repeat: no-repeat;
 }
 
 #examplesContainer {
@@ -455,7 +445,7 @@ html, body {
     margin-right: 0;
 }
 #headPane #compile::after {
-    background-color: #2cff2c;
+    background-color: hsl(216, 100%, 60%);
     background-image: url(../Sprites/open.png);
 }
 
@@ -470,7 +460,6 @@ html, body {
     margin-right: 1px;
 }
 #headPane #fontInc::after {
-    background-color: #f6ffa6;
     background-image: url(../Sprites/zoomIn.png);
 }
 
@@ -478,7 +467,6 @@ html, body {
     margin-left:0;
 }
 #headPane #fontDec::after {
-    background-color: #f6ffa6;
     background-image: url(../Sprites/zoomOut.png);
 }
 
@@ -490,19 +478,6 @@ html, body {
     background-color: black;
     flex-grow: 0;
 }
-
-/*
-.charR #emulator[src="empty.html"] {
-    filter: hue-rotate(-180deg);
-}
-.charG #emulator[src="empty.html"] {
-    filter: hue-rotate(-37deg);
-}
-.charB #emulator[src="empty.html"] {
-    filter: hue-rotate(54deg);
-}
-
-*/
 
 .previewPixel{
     position: relative;
