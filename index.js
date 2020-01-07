@@ -17,7 +17,7 @@ let settings = `
 #define MY_SETTINGS_H
 
 #define PROJ_BUTTONS_POLLING_ONLY 1
-#define PROJ_HIRES 0
+#define PROJ_HIRES 1
 #define PROJ_STARTUPLOGO 1
 #define PROJ_GAMEBUINO 0
 #define PROJ_HIGH_RAM HIGH_RAM_MUSIC
