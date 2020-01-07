@@ -150,13 +150,27 @@ function updateFileList(){
     while( DOM.fileList.children.length )
         DOM.fileList.removeChild( DOM.fileList.firstElementChild );
 
+    while( DOM.fileListShow.children.length )
+        DOM.fileListShow.removeChild( DOM.fileListShow.firstElementChild );
+
+
     for( let fileName in source ){
+        if(!fileName.startsWith('_'))
+        {
+            let e = document.createElement("option");
+            DOM.fileListShow.appendChild(e);
+            e.value = fileName;
+            e.textContent = fileName;
+            if( editor.session == source[fileName] )
+                DOM.fileListShow.value = fileName;
+    
+        }
         let e = document.createElement("option");
         DOM.fileList.appendChild(e);
         e.value = fileName;
         e.textContent = fileName;
         if( editor.session == source[fileName] )
-            DOM.fileList.value = fileName;
+            DOM.fileList.value = fileName;    
     }
 }
 
@@ -679,9 +693,9 @@ const events = {
         }
     },
 
-    fileList:{
+    fileListShow:{
         change(){
-            editor.setSession( source[DOM.fileList.value] );
+            editor.setSession( source[DOM.fileListShow.value] );
         }
     },
 
