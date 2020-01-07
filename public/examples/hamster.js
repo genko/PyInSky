@@ -1,8 +1,35 @@
-examples["hamster"] = {    "main.py": `# main.py
+examples["hamster"] = {    "main.py": `from _main import nutze_tasten, laufe, links, start
 
-from renderer import Renderer
-from user_input import UserInput
-from map import Map
+def rechts():
+    links()
+    links()
+    links()
+
+#def anweisungen():
+# Möglichkeit 1:
+# nutze_tasten()
+
+# Möglichkeit 2:
+laufe()
+laufe()
+laufe()
+laufe()
+rechts()
+laufe()
+laufe()
+laufe()
+links()
+laufe()
+laufe()
+
+# Startet das Spiel
+start()
+`,
+    "_main.py": `# main.py
+
+from _renderer import Renderer
+from _user_input import UserInput
+from _map import Map
 
 renderer = Renderer()
 user_input = UserInput()
@@ -11,42 +38,33 @@ game_map = Map()
 
 """ set mode """
 
-# USE_HARDKEYS = False
-USE_HARDKEYS = True
+USE_HARDKEYS = False
 
 
 """ high level operations """
 
+ORIENTATION = "east"  # todo> move this to Map and ensure texture is rendered correctly!
+OPERATIONS = []
+
 
 def laufe():
-    operations.append("laufen")
+    global OPERATIONS
+    OPERATIONS.append("laufe")
 
 
-def drehe():
-    operations.append("drehen")
+def links():
+    global OPERATIONS
+    OPERATIONS.append("links")
+
+
+def nutze_tasten():
+    global USE_HARDKEYS
+    USE_HARDKEYS = True
 
 
 def wiederhole(operation, anzahl):
-    for i in range(0, anzahl):
+    for _ in range(0, anzahl):
         operation()
-
-
-orientation = "east"  # todo> move this to Map and ensure texture is rendered correctly!
-operations = []
-
-
-""" user input """
-
-laufe()
-laufe()
-laufe()
-laufe()
-wiederhole(drehe, 3)
-laufe()
-laufe()
-laufe()
-drehe()
-wiederhole(laufe, 2)
 
 
 """ fixed """
@@ -65,7 +83,7 @@ def is_player_at_goal(game_map, position) -> bool:
 def handle_user_input(orientation, player_position, operations, operation_index):
     """ enables to learn programming the easy way """
 
-    if operations[operation_index] == "drehen":
+    if operations[operation_index] == "links":
         if orientation == "east":
             orientation = "north"
         elif orientation == "north":
@@ -75,7 +93,7 @@ def handle_user_input(orientation, player_position, operations, operation_index)
         elif orientation == "south":
             orientation = "east"
 
-    if operations[operation_index] == "laufen":
+    if operations[operation_index] == "laufe":
         if orientation == "east":
             player_position = user_input.on_right(player_position)
         elif orientation == "north":
@@ -88,37 +106,43 @@ def handle_user_input(orientation, player_position, operations, operation_index)
     return orientation, player_position, operation_index + 1
 
 
-operation_index = 0  # set this to 0 to use programmatic version
-player_position = game_map.initial_player_position
-while True:
-    if USE_HARDKEYS:
-        next_player_position = user_input.handle_key_input(player_position)
-    else:
-        orientation, next_player_position, operation_index = handle_user_input(
-            orientation, player_position, operations, operation_index
-        )
+def start():
+    global ORIENTATION, OPERATIONS
 
-    if is_player_position_valid(game_map, next_player_position):
-        player_position = next_player_position
+    # request actions of player from public main
+    # anweisungen()
 
-    # render map & player
-    game_map.render_map(renderer)
-    game_map.render_player(renderer, player_position)
-    renderer.render()
+    operation_index = 0  # set this to 0 to use programmatic version
+    player_position = game_map.initial_player_position
+    while True:
+        if USE_HARDKEYS:
+            next_player_position = user_input.handle_key_input(player_position)
+        else:
+            ORIENTATION, next_player_position, operation_index = handle_user_input(
+                ORIENTATION, player_position, OPERATIONS, operation_index
+            )
 
-    if is_player_at_goal(game_map, player_position):
-        print("level solved!")
-        break
+        if is_player_position_valid(game_map, next_player_position):
+            player_position = next_player_position
 
-    if not USE_HARDKEYS:
-        if operation_index >= len(operations):
-            print("level is not solved but there are no more commands specified!")
+        # render map & player
+        game_map.render_map(renderer)
+        game_map.render_player(renderer, player_position)
+        renderer.render()
+
+        if is_player_at_goal(game_map, player_position):
+            print("level solved!")
             break
 
-`,
-    "map.py": `# map.py
+        if not USE_HARDKEYS:
+            if operation_index >= len(OPERATIONS):
+                print("level is not solved but there are no more commands specified!")
+                break
 
-from textures import Textures
+`,
+    "_map.py": `# map.py
+
+from _textures import Textures
 
 
 class Map:
@@ -172,7 +196,7 @@ class Map:
         )
 
 `,
-    "renderer.py": `# renderer.py
+    "_renderer.py": `# renderer.py
 
 import upygame
 
@@ -208,7 +232,56 @@ class Renderer:
         upygame.display.flip()
 
 `,
-    "textures.py": `# textures.py
+    "_user_input.py": `# user_input.py
+
+import upygame
+
+
+class UserInput:
+    """ this class simplifies user input events """
+
+    def _is_right_press_event(self, event) -> bool:
+        return event.type == upygame.KEYDOWN and event.key == upygame.K_RIGHT
+
+    def _is_left_press_event(self, event) -> bool:
+        return event.type == upygame.KEYDOWN and event.key == upygame.K_LEFT
+
+    def _is_up_press_event(self, event) -> bool:
+        return event.type == upygame.KEYDOWN and event.key == upygame.K_UP
+
+    def _is_down_press_event(self, event) -> bool:
+        return event.type == upygame.KEYDOWN and event.key == upygame.K_DOWN
+
+    def on_right(self, position):
+        return {"x": position["x"] + 1, "y": position["y"]}
+
+    def on_left(self, position):
+        return {"x": position["x"] - 1, "y": position["y"]}
+
+    def on_up(self, position):
+        return {"x": position["x"], "y": position["y"] - 1}
+
+    def on_down(self, position):
+        return {"x": position["x"], "y": position["y"] + 1}
+
+    def handle_key_input(self, position):
+        event = upygame.event.poll()
+        if event == upygame.NOEVENT:
+            return position
+
+        if self._is_up_press_event(event):
+            position = self.on_up(position)
+        if self._is_right_press_event(event):
+            position = self.on_right(position)
+        if self._is_down_press_event(event):
+            position = self.on_down(position)
+        if self._is_left_press_event(event):
+            position = self.on_left(position)
+
+        return position
+
+`,
+    "_textures.py": `# textures.py
 
 import upygame
 
@@ -319,53 +392,4 @@ class Textures:
 \\x00\\x00\\x00\\x00\\
 '
         return upygame.surface.Surface(8, 8, pixels)
-`,
-    "user_input.py": `# user_input.py
-
-import upygame
-
-
-class UserInput:
-    """ this class simplifies user input events """
-
-    def _is_right_press_event(self, event) -> bool:
-        return event.type == upygame.KEYDOWN and event.key == upygame.K_RIGHT
-
-    def _is_left_press_event(self, event) -> bool:
-        return event.type == upygame.KEYDOWN and event.key == upygame.K_LEFT
-
-    def _is_up_press_event(self, event) -> bool:
-        return event.type == upygame.KEYDOWN and event.key == upygame.K_UP
-
-    def _is_down_press_event(self, event) -> bool:
-        return event.type == upygame.KEYDOWN and event.key == upygame.K_DOWN
-
-    def on_right(self, position):
-        return {"x": position["x"] + 1, "y": position["y"]}
-
-    def on_left(self, position):
-        return {"x": position["x"] - 1, "y": position["y"]}
-
-    def on_up(self, position):
-        return {"x": position["x"], "y": position["y"] - 1}
-
-    def on_down(self, position):
-        return {"x": position["x"], "y": position["y"] + 1}
-
-    def handle_key_input(self, position):
-        event = upygame.event.poll()
-        if event == upygame.NOEVENT:
-            return position
-
-        if self._is_up_press_event(event):
-            position = self.on_up(position)
-        if self._is_right_press_event(event):
-            position = self.on_right(position)
-        if self._is_down_press_event(event):
-            position = self.on_down(position)
-        if self._is_left_press_event(event):
-            position = self.on_left(position)
-
-        return position
-
 `};

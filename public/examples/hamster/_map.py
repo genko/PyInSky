@@ -1,6 +1,6 @@
 # map.py
 
-from textures import Textures
+from _textures import Textures
 
 
 class Map:
