@@ -1,5 +1,3 @@
-# user_input.py
-
 import upygame
 
 

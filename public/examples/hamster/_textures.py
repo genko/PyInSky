@@ -1,6 +1,5 @@
-# textures.py
-
 import upygame
+
 
 # color scheme
 upygame.display.set_palette_16bit([
@@ -97,7 +96,7 @@ class Textures:
 '
         return upygame.surface.Surface(8, 8, pixels)
 
-    def target(self):
+    def goal(self):
         pixels = b'\
 \x00\x00\x00\x00\
 \x03\x33\x33\x30\

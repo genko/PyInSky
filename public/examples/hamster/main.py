@@ -1,11 +1,16 @@
 from _main import nutze_tasten, laufe, links, start
 
-def rechts():
-    links()
-    links()
-    links()
 
-#def anweisungen():
+def wiederhole(operation, anzahl):
+    for _ in range(0, anzahl):
+        operation()
+
+
+def rechts():
+    wiederhole(links, 3)
+
+
+# def anweisungen():
 # Möglichkeit 1:
 # nutze_tasten()
 

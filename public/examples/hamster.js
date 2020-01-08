@@ -1,11 +1,16 @@
 examples["hamster"] = {    "main.py": `from _main import nutze_tasten, laufe, links, start
 
-def rechts():
-    links()
-    links()
-    links()
 
-#def anweisungen():
+def wiederhole(operation, anzahl):
+    for _ in range(0, anzahl):
+        operation()
+
+
+def rechts():
+    wiederhole(links, 3)
+
+
+# def anweisungen():
 # Möglichkeit 1:
 # nutze_tasten()
 
@@ -25,36 +30,55 @@ laufe()
 # Startet das Spiel
 start()
 `,
-    "_main.py": `# main.py
+    "_player_operations.py": `''' simple definition of possible operations '''
+
+class PlayerOperations:
+    MOVE = 0
+    TURN_LEFT = 1
+    COLLECT = 2
+    DROP = 3
+`,
+    "_main.py": `""" imports """
 
 from _renderer import Renderer
 from _user_input import UserInput
 from _map import Map
+from _map_renderer import MapRenderer
+from _textures import Textures
 
-renderer = Renderer()
-user_input = UserInput()
+from _player_orientation import PlayerOrientation
+from _player_operations import PlayerOperations
+
+from _verify_operations import is_player_position_valid, is_player_at_goal
+
+
+""" create objects """
+
 game_map = Map()
+renderer = Renderer()
+textures = Textures()
+user_input = UserInput()
+map_renderer = MapRenderer(renderer, game_map, textures)
 
 
-""" set mode """
+""" define globals """
 
-USE_HARDKEYS = False
+USE_HARDKEYS = False  # by default, users should programm the operations
+ORIENTATION = game_map.initial_player_orientation  # use intitial orientation
+OPERATIONS = []  # start with no operations
 
 
 """ high level operations """
 
-ORIENTATION = "east"  # todo> move this to Map and ensure texture is rendered correctly!
-OPERATIONS = []
-
-
+# store line numbers such as there is the possibiliy to print invalid operations
 def laufe():
     global OPERATIONS
-    OPERATIONS.append("laufe")
+    OPERATIONS.append(PlayerOperations.MOVE)
 
 
 def links():
     global OPERATIONS
-    OPERATIONS.append("links")
+    OPERATIONS.append(PlayerOperations.TURN_LEFT)
 
 
 def nutze_tasten():
@@ -62,59 +86,52 @@ def nutze_tasten():
     USE_HARDKEYS = True
 
 
-def wiederhole(operation, anzahl):
-    for _ in range(0, anzahl):
-        operation()
-
-
 """ fixed """
 
 
-def is_player_position_valid(game_map, position) -> bool:
-    tile = game_map.map[position["y"]][position["x"]]
-    return tile != 2 and tile != 0
+def _handle_turn_left(current_orientation: PlayerOrientation) -> PlayerOrientation:
+    if current_orientation == PlayerOrientation.EAST:
+        return PlayerOrientation.NORTH
+    elif current_orientation == PlayerOrientation.NORTH:
+        return PlayerOrientation.WEST
+    elif current_orientation == PlayerOrientation.WEST:
+        return PlayerOrientation.SOUTH
+    elif current_orientation == PlayerOrientation.SOUTH:
+        return PlayerOrientation.EAST
 
 
-def is_player_at_goal(game_map, position) -> bool:
-    tile = game_map.map[position["y"]][position["x"]]
-    return tile == 3
+def _handle_move(current_orientation: PlayerOrientation, current_player_position: PlayerOperations) -> PlayerOrientation:
+    if current_orientation == PlayerOrientation.EAST:
+        return user_input.on_right(current_player_position)
+    elif current_orientation == PlayerOrientation.NORTH:
+        return user_input.on_up(current_player_position)
+    elif current_orientation == PlayerOrientation.WEST:
+        return user_input.on_left(current_player_position)
+    elif current_orientation == PlayerOrientation.SOUTH:
+        return user_input.on_down(current_player_position)
 
 
 def handle_user_input(orientation, player_position, operations, operation_index):
     """ enables to learn programming the easy way """
 
-    if operations[operation_index] == "links":
-        if orientation == "east":
-            orientation = "north"
-        elif orientation == "north":
-            orientation = "west"
-        elif orientation == "west":
-            orientation = "south"
-        elif orientation == "south":
-            orientation = "east"
-
-    if operations[operation_index] == "laufe":
-        if orientation == "east":
-            player_position = user_input.on_right(player_position)
-        elif orientation == "north":
-            player_position = user_input.on_up(player_position)
-        elif orientation == "west":
-            player_position = user_input.on_left(player_position)
-        elif orientation == "south":
-            player_position = user_input.on_down(player_position)
+    if operations[operation_index] == PlayerOperations.TURN_LEFT:
+        orientation = _handle_turn_left(orientation)
+    if operations[operation_index] == PlayerOperations.MOVE:
+        player_position = _handle_move(orientation, player_position)
 
     return orientation, player_position, operation_index + 1
 
 
+# todo> improve start method
 def start():
     global ORIENTATION, OPERATIONS
 
-    # request actions of player from public main
-    # anweisungen()
 
     operation_index = 0  # set this to 0 to use programmatic version
     player_position = game_map.initial_player_position
     while True:
+
+        # todo> improve mode handling
         if USE_HARDKEYS:
             next_player_position = user_input.handle_key_input(player_position)
         else:
@@ -122,34 +139,57 @@ def start():
                 ORIENTATION, player_position, OPERATIONS, operation_index
             )
 
+
+        # todo> improve message in case of player position is not possible
         if is_player_position_valid(game_map, next_player_position):
             player_position = next_player_position
 
+        # todo> add checks if player is killed by e. g. a cat
+
+
         # render map & player
-        game_map.render_map(renderer)
-        game_map.render_player(renderer, player_position)
+        map_renderer.render_map(renderer)
+        map_renderer.render_player(renderer, player_position)
         renderer.render()
 
+
+        # todo> improve level ending checks
         if is_player_at_goal(game_map, player_position):
-            print("level solved!")
+            print("Level gelöst!")
             break
 
         if not USE_HARDKEYS:
             if operation_index >= len(OPERATIONS):
-                print("level is not solved but there are no more commands specified!")
+                print("Level ist nicht gelöst, aber es wurden alle Befehle ausgeführt!")
                 break
 
+`,
+    "_player_orientation.py": `''' simple definition of possible orientations '''
+
+class PlayerOrientation:
+    NORTH = 0
+    EAST = 1
+    SOUTH = 2
+    WEST = 3
 `,
     "_map.py": `# map.py
 
 from _textures import Textures
+from _player_orientation import PlayerOrientation
 
 
 class Map:
     """ define map, endpoint and inital player position here """
 
+    WATER = 0
+    GRASS = 1
+    WALL = 2
+    GOAL = 3
+    PLAYER = 4
+
     def __init__(self):
         self.initial_player_position = {"x": 5, "y": 6}
+        self.initial_player_orientation = PlayerOrientation.EAST
         self.map = [  # 13 x 11
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
@@ -163,12 +203,25 @@ class Map:
             [0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 3, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
+`,
+    "_map_renderer.py": `from _map import Map
+from _renderer import Renderer
+from _textures import Textures
 
-        textures = Textures()
+
+class MapRenderer:
+    """ define map, endpoint and inital player position here """
+
+    def __init__(self, renderer: Renderer, map: Map, textures: Textures):
+        self.map = map
+        self.renderer = renderer
+        self.textures = textures
+
+        # fetch resources only once
         self.water_texture = textures.water()
         self.grass_texture = textures.grass()
         self.wall_texture = textures.wall()
-        self.target_texture = textures.target()
+        self.goal_texture = textures.goal()
         self.player_texture = textures.player()
 
     def _enumerate(self, iterable) -> (int, object):
@@ -179,45 +232,37 @@ class Map:
             yield (i, entry)
 
     def render_map(self, renderer):
-        for (j, row) in self._enumerate(self.map):
+        for (j, row) in self._enumerate(self.map.map):
             for (i, mapTile) in self._enumerate(row):
-                if mapTile == 0:
+                if mapTile == self.map.WATER:
                     renderer.create_texture(self.water_texture, i, j)
-                if mapTile == 1:
+                if mapTile == self.map.GRASS:
                     renderer.create_texture(self.grass_texture, i, j)
-                if mapTile == 2:
+                if mapTile == self.map.WALL:
                     renderer.create_texture(self.wall_texture, i, j)
-                if mapTile == 3:
-                    renderer.create_texture(self.target_texture, i, j)
+                if mapTile == self.map.GOAL:
+                    renderer.create_texture(self.goal_texture, i, j)
 
     def render_player(self, renderer, player_position):
-        renderer.create_texture(
+        self.renderer.create_texture(
             self.player_texture, player_position["x"], player_position["y"]
         )
 
 `,
-    "_renderer.py": `# renderer.py
-
-import upygame
+    "_renderer.py": `import upygame
 
 
 class Renderer:
     """ The Renderer is designed to hide api-calls """
 
+    execute_high_resolution = True  # which is 220×176 instead of 110×88
     offset_x = 3  # int ((110 % 8) / 2.0)
     offset_y = 0  # int (( 88 % 8) / 2.0)
-    px_per_field = 8
+    px_per_field = 16 if execute_high_resolution else 8
 
     def __init__(self):
         print("Renderer setup...")
-
-        # Setup the screen which has a resolution of 110×88 (fastest resolution)
-        # The highest possible resolution is 220×176 (high resolution)
         self.screen = upygame.display.set_mode()
-
-        # 110x88 finally results in a playable raster of 8px:
-        # x: 13 (and 6 unused px)
-        # y: 11
 
     def create_texture(self, surface: upygame.surface.Surface, x: int, y: int) -> None:
         # Copy texture to screen memory
@@ -232,9 +277,7 @@ class Renderer:
         upygame.display.flip()
 
 `,
-    "_user_input.py": `# user_input.py
-
-import upygame
+    "_user_input.py": `import upygame
 
 
 class UserInput:
@@ -281,9 +324,8 @@ class UserInput:
         return position
 
 `,
-    "_textures.py": `# textures.py
+    "_textures.py": `import upygame
 
-import upygame
 
 # color scheme
 upygame.display.set_palette_16bit([
@@ -380,7 +422,7 @@ class Textures:
 '
         return upygame.surface.Surface(8, 8, pixels)
 
-    def target(self):
+    def goal(self):
         pixels = b'\\
 \\x00\\x00\\x00\\x00\\
 \\x03\\x33\\x33\\x30\\
@@ -392,4 +434,16 @@ class Textures:
 \\x00\\x00\\x00\\x00\\
 '
         return upygame.surface.Surface(8, 8, pixels)
+`,
+    "_verify_operations.py": `''' this is a set of verification operations '''
+
+
+def is_player_position_valid(game_map, position) -> bool:
+    tile = game_map.map[position["y"]][position["x"]]
+    return tile != 2 and tile != 0
+
+
+def is_player_at_goal(game_map, position) -> bool:
+    tile = game_map.map[position["y"]][position["x"]]
+    return tile == 3
 `};
