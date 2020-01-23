@@ -18,7 +18,7 @@ CMD=$CMD" > frozen_mpy.c"
 
 eval $CMD
 
-node ../../jake.js $DIRTYLIB
+node jake.js $DIRTYLIB
 
 cd $STARTDIR
 

@@ -4,26 +4,26 @@ const fs = require('fs');
 const process = require("process");
 
 const CSOURCES = []
-, CXXSOURCES = []
-, FLAGS=[]
-, C_FLAGS=[]
-, CXX_FLAGS=[]
-;
+    , CXXSOURCES = []
+    , FLAGS = []
+    , C_FLAGS = []
+    , CXX_FLAGS = []
+    ;
 
 let cleanBuild = process.argv[2] == 1;
 console.log(cleanBuild + " " + process.argv[2]);
-let CC='../../gcc-arm-none-eabi/bin/arm-none-eabi-gcc';
-let CPP='../../gcc-arm-none-eabi/bin/arm-none-eabi-g++';
-let LD='../../gcc-arm-none-eabi/bin/arm-none-eabi-gcc';
+let CC = '../../gcc-arm-none-eabi/bin/arm-none-eabi-gcc';
+let CPP = '../../gcc-arm-none-eabi/bin/arm-none-eabi-g++';
+let LD = '../../gcc-arm-none-eabi/bin/arm-none-eabi-gcc';
 let ELF2BIN = '../../gcc-arm-none-eabi/bin/arm-none-eabi-objcopy';
 
 let LIBRARIES = 'libmicropython.a';
 
 let LINKER_SCRIPT = './PokittoLib/mbed-pokitto/targets/cmsis/TARGET_NXP/TARGET_LPC11U6X/TOOLCHAIN_GCC_ARM/TARGET_LPC11U68/LPC11U68.ld';
 
-let LD_FLAGS ='-Wl,--gc-sections -Wl,--wrap,main -Wl,--wrap,_memalign_r -Wl,-n --specs=nano.specs -mcpu=cortex-m0plus -mthumb';
+let LD_FLAGS = '-Wl,--gc-sections -Wl,--wrap,main -Wl,--wrap,_memalign_r -Wl,-n --specs=nano.specs -mcpu=cortex-m0plus -mthumb';
 
-let LD_SYS_LIBS ='-Wl,--start-group -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys  -Wl,--end-group';
+let LD_SYS_LIBS = '-Wl,--start-group -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys  -Wl,--end-group';
 
 
 CXXSOURCES.push('PokittoLib/POKITTO_CORE/FONTS/TIC806x6.cpp');
@@ -151,22 +151,22 @@ let forceCompile = [
 
 
 C_FLAGS.push(
-    '-c',             
-    '-Wall',             
-    '-Wextra',             
-    '-Wno-unused-parameter',             
-    '-Wno-missing-field-initializers',             
-    '-fmessage-length=0',             
-    '-fno-exceptions',             
+    '-c',
+    '-Wall',
+    '-Wextra',
+    '-Wno-unused-parameter',
+    '-Wno-missing-field-initializers',
+    '-fmessage-length=0',
+    '-fno-exceptions',
     '-fno-builtin',
-    '-ffunction-sections',             
-    '-fdata-sections',             
-    '-funsigned-char',             
-    '-MMD',             
-    '-fno-delete-null-pointer-checks',             
-    '-fomit-frame-pointer',             
-    '-Os',             
-    '-g1',             
+    '-ffunction-sections',
+    '-fdata-sections',
+    '-funsigned-char',
+    '-MMD',
+    '-fno-delete-null-pointer-checks',
+    '-fomit-frame-pointer',
+    '-Os',
+    '-g1',
     '-DMBED_RTOS_SINGLE_THREAD',
     '-mcpu=cortex-m0plus',
     '-mthumb',
@@ -304,15 +304,15 @@ BUILD/%.o : %.c
 	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 */
 
-function obj(src){
+function obj(src) {
     return src.replace(/.*\/([^\/]+)/, '$1').replace(/\.[^.]+$/i, '.o');
 }
 
-CSOURCES.forEach( src => {
+CSOURCES.forEach(src => {
     let outFile = obj(src)
-    if( forceCompile.indexOf(src) == -1 && !cleanBuild && fs.existsSync(outFile) )
+    if (forceCompile.indexOf(src) == -1 && !cleanBuild && fs.existsSync(outFile))
         return;
-        
+
     execSync([
         CC,
         C_FLAGS.join(" "),
@@ -328,9 +328,9 @@ BUILD/%.o : %.cpp
 	+@echo "Compile: $(notdir $<)"
 	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
 */
-CXXSOURCES.forEach( src => {
+CXXSOURCES.forEach(src => {
     let outFile = obj(src);
-    if( forceCompile.indexOf(src) == -1 && !cleanBuild && src.indexOf("PokittoLib/") != -1 && fs.existsSync(outFile) )
+    if (forceCompile.indexOf(src) == -1 && !cleanBuild && src.indexOf("PokittoLib/") != -1 && fs.existsSync(outFile))
         return;
 
     execSync([
@@ -359,7 +359,7 @@ execSync([
 /*
 $(BPROJECT).bin: $(BPROJECT).elf
 	$(ELF2BIN) -O binary $< $@
-	+@echo "===== bin file ready to flash: $(OBJDIR)/$@ =====" 
+	+@echo "===== bin file ready to flash: $(OBJDIR)/$@ ====="
 */
 execSync([
     ELF2BIN,
