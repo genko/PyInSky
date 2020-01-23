@@ -261,3 +261,4 @@ dmypy.json
 # repo specific settings
 builds/
 gcc-arm-none-eabi/
+public/examples/**.js

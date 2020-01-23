@@ -1,9 +1,9 @@
-""" examples updater """
+""" this script copies the python project examples to the project templates offered by the frontend """
 
 import os
 
 
-# python content should be copied to
+# type definition:
 # {"project_title": str, "project_files": [{"file_name": str, "file_content": str}]}
 projects = []
 
