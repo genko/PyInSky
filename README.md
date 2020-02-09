@@ -8,6 +8,16 @@ programs on a virtual Pokitto in your browser.
 This repository contains several symbol links.
 Due to, it is recommended to use a linux based operating system.
 
+## Install Node
+
+Steps are documented [here](https://github.com/nodesource/distributions/blob/master/README.md) 
+
+```sh
+# Using Ubuntu
+curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
 ## Running Locally
 
 Make sure you have npm installed, apt install npm might help.
